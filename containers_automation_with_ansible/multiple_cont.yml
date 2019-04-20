@@ -1,0 +1,27 @@
+---
+ - hosts: localhost
+   remote_user: root
+   tasks:
+
+    - name: variable file
+      include_vars: vars.yml
+   
+    - name: directory name from where container will use volume
+      file:
+       path: /mnt/{{ dir }}.{{ item }}
+       state: directory
+       mode: 0755
+      with_sequence: "{{ count }}"
+
+
+    - name: container creation
+      docker_container:
+       name: "{{ name }}.{{ item }}"
+       image: "{{ image }}"
+       volumes: /mnt/{{ dir }}.{{ item }}
+       interactive: True
+       detach: True
+       command: /bin/bash
+       state: started
+       restart: True
+      with_sequence: "{{ count }}"

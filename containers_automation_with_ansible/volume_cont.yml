@@ -1,0 +1,25 @@
+---
+ - hosts: localhost
+   remote_user: root
+   tasks:
+
+    - name: variable file
+      include_vars: vars.yml
+ 
+    - name: directory ceration for volume
+      file:
+       path: "{{ path }}"
+       state: directory
+       mode: 0755
+
+    - name: container creation with volume
+      docker_container:
+       name: "{{ name }}"
+       image: "{{ image }}"
+       volumes: "{{ path }}"
+       interactive: True
+       detach: True
+       command: /bin/bash
+       state: started
+       restart: True
+

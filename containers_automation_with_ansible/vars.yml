@@ -1,0 +1,10 @@
+image: centos
+name: heliiiii
+src_port: 81
+dest_port: 80 
+src_vol: /mnt/www 
+dest_vol: /var/www/html
+privileged: true
+dir: helii
+path: /mnt/helii
+count: "2"

@@ -1,0 +1,35 @@
+---
+ - hosts: localhost
+   tasks:
+    - name: Add centos os repositories
+      yum_repository:
+        name: os
+        description: os repositories
+        file: rhel
+        baseurl: http://mirror.centos.org/centos/7/os/x86_64/
+        gpgcheck: no
+
+    - name: installing docker dependencies
+      yum: name=https://rpmfind.net/linux/centos/7.6.1810/extras/x86_64/Packages/container-selinux-2.74-1.el7.noarch.rpm state=present
+
+    - name: Add centos extras repositories
+      yum_repository:
+        name: epel
+        description: extras repositories 
+        file: rhel
+        baseurl: http://mirror.centos.org/centos/7/extras/x86_64/
+        gpgcheck: no
+
+    - name: Getting docker-ce repository
+      get_url: url=https://download.docker.com/linux/centos/docker-ce.repo dest=/etc/yum.repos.d/
+
+    - name: installing docker
+      yum: 
+       name: docker-ce
+       state: present
+
+    - name: enable and restart docker service
+      service:
+       name: docker
+       state: restarted
+       enabled: yes
