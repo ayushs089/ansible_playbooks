@@ -1,0 +1,23 @@
+---
+ - hosts: localhost
+   connection: local
+   gather_facts: yes
+   vars_files:
+        - key.yml
+   vars:
+        - password: redhat123456
+        - username: root
+   tasks:
+    - name: access key
+      rds:
+       # endpoints_path: ec2.ap-south-1.amazonaws.com
+        region: ap-south-1
+        aws_access_key: "{{ Access_Key_ID }}"
+        aws_secret_key: "{{ Secret_Access_Key }}"
+        instance_type: db.t2.small
+        password: "{{ password }}"
+        username: "{{ username }}"
+        command: create
+        instance_name: new-database
+        db_engine: MySQL
+        size: 10

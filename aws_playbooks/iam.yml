@@ -1,0 +1,44 @@
+---
+ - hosts: localhost
+   connection: local
+   gather_facts: yes
+   vars_files:
+        - key.yml
+   vars:
+     - temp_pass: hello@1234
+   tasks:
+    - name: Creating Users
+      iam:
+        aws_access_key: "{{ Access_Key_ID }}"
+        aws_secret_key: "{{ Secret_Access_Key }}"
+        iam_type: user
+        name: "{{ item }}"
+        state: present
+        password: "{{ temp_pass }}"
+      with_items:
+        - Jessica
+        - Micheal
+      register: x
+    - debug: var=x 
+
+    - name: Creating Groups 
+      iam:
+        aws_access_key: "{{ Access_Key_ID }}"
+        aws_secret_key: "{{ Secret_Access_Key }}"
+        iam_type: group
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - Admin
+        - Developer
+      register: y
+    - debug: var=y 
+    
+    - name: Adding user in existing group
+      iam:
+        aws_access_key: "{{ Access_Key_ID }}"
+        aws_secret_key: "{{ Secret_Access_Key }}"
+        iam_type: user
+        name: Jessica
+        state: update
+        groups: Admin

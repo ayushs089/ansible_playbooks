@@ -1,0 +1,19 @@
+---
+ - hosts: localhost
+   connection: local
+   gather_facts: yes
+   vars_files:
+        - key.yml
+   vars:
+     - buck: adhoc1234456654321
+   tasks:
+    - name: access key
+      aws_s3:
+        aws_access_key: "{{ Access_Key_ID }}"
+        aws_secret_key: "{{ Secret_Access_Key }}"
+        region: ap-south-1
+        bucket: "{{ buck }}"
+        object: /blackhat/grayhat/mac.txt
+        src: mac.txt
+        overwrite: false        
+        mode: put

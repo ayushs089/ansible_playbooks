@@ -1,0 +1,14 @@
+---
+ - hosts: localhost
+   connection: local
+   gather_facts: yes
+   vars_files:
+        - key.yml
+   tasks:
+    - name: access key
+      aws_s3_bucket_facts:
+        region: ap-south-1
+        aws_access_key: "{{ Access_Key_ID }}"
+        aws_secret_key: "{{ Secret_Access_Key }}"
+      register: x
+    - debug: var=x

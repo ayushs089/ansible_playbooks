@@ -1,0 +1,53 @@
+---
+ - hosts: localhost
+   connection: local
+   gather_facts: yes
+   vars_files:
+        - key.yml
+   vars:
+        - key: new_man
+   tasks:
+    - name: Creating Key
+      ec2_key: 
+        region: ap-south-1
+        aws_access_key: "{{ Access_Key_ID }}"
+        aws_secret_key: "{{ Secret_Access_Key }}"
+        name: "{{ key }}"
+      register: nkey
+    - debug: var=nkey
+
+    - name: Copy key to host machine
+      copy: content="{{ nkey.key.private_key }}" dest="/root/{{ key }}.pem" mode=0600
+ 
+    - name: Creating Security Group
+      ec2_group:
+         name: example
+         region: ap-south-1
+         aws_access_key: "{{ Access_Key_ID }}"
+         aws_secret_key: "{{ Secret_Access_Key }}"
+         description: an example EC2 group
+         rules:
+           # Allowing http port
+           - proto: tcp
+             from_port: 80
+             to_port: 80
+             cidr_ip: 0.0.0.0/0
+          # Allowing ssh port
+           - proto: tcp
+             from_port: 22
+             to_port: 22
+             cidr_ip: 10.0.0.0/8
+ 
+    - name: Launching ec2 instance
+      ec2:
+        region: ap-south-1
+        aws_access_key: "{{ Access_Key_ID }}"
+        aws_secret_key: "{{ Secret_Access_Key }}"
+        key_name: "{{ key }}"
+        instance_type: t2.micro
+        image: ami-5b673c34
+        wait: yes
+        group: example
+        count: 1
+        vpc_subnet_id: subnet-4247f80e
+        assign_public_ip: yes

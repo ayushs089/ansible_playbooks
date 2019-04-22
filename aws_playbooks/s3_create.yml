@@ -1,0 +1,25 @@
+---
+ - hosts: localhost
+   connection: local
+   gather_facts: yes
+   vars_files:
+        - key.yml
+   vars:
+     - buck: adhoc1234456654321
+   tasks:
+    - name: Creating S3 bucket
+      s3_bucket:
+        aws_access_key: "{{ Access_Key_ID }}"
+        aws_secret_key: "{{ Secret_Access_Key }}"
+        region: ap-south-1
+        name: "{{ buck }}"
+        state: present
+        versioning: yes
+    - s3_lifecycle:
+        aws_access_key: "{{ Access_Key_ID }}"
+        aws_secret_key: "{{ Secret_Access_Key }}"
+        name: "{{ buck }}"
+        expiration_days: 30
+        prefix: /logs/
+        status: enabled
+        state: present
