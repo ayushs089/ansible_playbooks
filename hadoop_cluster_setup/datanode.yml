@@ -1,0 +1,102 @@
+--- 
+ - hosts: datanode
+   tasks: 
+    - name: Creating rhel repository
+      yum_repository:
+        name: rhel
+        description: rhel
+        file: a
+        baseurl: ftp://192.168.10.254/pub/rhel75/
+        gpgcheck: no
+
+    - name: installing packages
+      yum: name={{ item }} state=present
+      with_items: 
+       - bash-completion
+       - vim*
+       - net-tools
+
+    - name: Getting jdk package
+      get_url: url=ftp://192.168.10.254/pub/ashutoshh/jdk-8u121-linux-x64.rpm   dest=/root/
+
+    - name: Installing jdk package
+      yum: name=jdk-8u121-linux-x64.rpm  state=present
+
+    - name: Downloading and Unarchiving hadoop tar
+      unarchive: src=ftp://192.168.10.254/pub/adhoc/Apache_Hadoop/hadoop-2.7.3.tar.gz dest=/ remote_src=yes
+
+    - shell: mv /hadoop-2.7.3 /hadoop
+
+    - name: Stop service firewalld, if started
+      service:
+        name: firewalld
+        state: stopped
+        enabled: no
+     
+    - name: setting selinux from enforcing to disabled
+      replace:
+        path: /etc/selinux/config 
+        regexp: "enforcing"
+        replace: "disabled"
+
+    - shell: setenforce 0
+
+    - name: Editing file hdfs-site.xml
+      blockinfile:
+        path: /hadoop/etc/hadoop/hdfs-site.xml
+        insertafter: "<configuration>"
+        content: |
+           <property>
+           <name>dfs.datanode.data.dir</name>
+           <value>/nnnhhh22ddnn</value>
+           </property>
+
+#    - replace: path=/hadoop/etc/hadoop/hadoop-env.sh regexp="JAVA_HOME=${JAVA_HOME}" replace="JAVA_HOME=/usr/java/jdk1.8.0_121"
+
+    - name: Editing file core-site.xml
+      blockinfile:
+        path: /hadoop/etc/hadoop/core-site.xml
+        insertafter: "<configuration>"
+        content: |
+          <property>
+          <name>fs.defaultFS</name>
+          <value>hdfs://192.168.10.137:10001</value>
+          </property>
+
+    - name: Editing file hadoop-env.sh
+      blockinfile:
+        path: /hadoop/etc/hadoop/hadoop-env.sh
+        insertafter: "<configuration>"
+        content: |
+            export JAVA_HOME=/usr/java/jdk1.8.0_121
+
+    - blockinfile:
+        path: /root/.bashrc
+        insertafter: "fi"
+        content: |
+          JAVA_HOME=/usr/java/jdk1.8.0_121
+          HADOOP_HOME=/hadoop
+          PATH=$JAVA_HOME/bin:$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$PATH
+          export PATH
+    
+    - shell: source /root/.bashrc
+
+    - shell: hadoop-daemon.sh start datanode
+
+    - name: Editing file yarn-site.xml
+      blockinfile:
+        path: /hadoop/etc/hadoop/yarn-site.xml
+        insertafter: "<configuration>"
+        content: |
+          <property>
+          <name>yarn.nodemanager.aux-services</name>
+          <value>mapreduce_shuffle</value>
+          </property>
+
+          <property>
+          <name>yarn.resourcemanager.resource-tracker.address</name>
+          <value>resource_masterip:8025</value>
+          </property>
+
+    
+    - shell: yarn-daemon.sh  start nodemanager
