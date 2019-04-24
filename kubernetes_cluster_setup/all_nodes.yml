@@ -1,0 +1,93 @@
+---
+ - hosts: all
+   tasks:
+    - name: selinux in permissive mode
+      selinux:
+        policy: targeted
+        state: permissive
+
+    - name: disable selinux
+      replace: path=/etc/selinux/config regexp="enforcing" replace="disabled"
+
+    - name: restart and enable firewall
+      service:
+        name: firewalld
+        state: started
+        enabled: yes
+
+    - name: add port to firewall and enable the service.
+      firewalld:
+        port: 0-65535/tcp
+        port: 0-65535/udp
+        permanent: true
+        state: enabled
+
+    - name: reload firewall service
+      shell: firewall-cmd --reload
+
+    - name: disable swap
+      shell: swapoff -a
+
+    - name: remove the entries of swap file from /etc/fstab 
+      mount:
+        path: /etc/fstab
+        fstype: swap
+        state: absent
+
+    - name: enable br_netfilter module
+      modprobe:
+        name: br_netfilter
+        state: present
+
+    - name: do entry in /etc/sysctl.conf
+      blockinfile:
+        path: /etc/sysctl.conf
+        block: |
+          net.bridge.bridge-nf-call-iptables = 1
+          net.bridge.bridge-nf-call-ip6tables = 1
+
+    - shell: sysctl -p
+
+    - yum_repository: 
+       name: mainn
+       description: kuber
+       baseurl: ftp://192.168.10.254/pub/adhoc/kubernetes
+       file: repo
+       gpgcheck: no
+ 
+    - yum_repository: 
+       name: mainnn
+       description: normal
+       baseurl: ftp://192.168.10.254/pub/rhel75
+       file: repo
+       gpgcheck: no 
+
+    - name: installing packages
+      yum:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - kubelet
+        - kubeadm
+        - kubectl
+        - docker
+        - vim
+        - bash-completion
+       # - net-utils
+
+#    - shell: yum install -y kubelet kubeadm kubectl docker vim bash-completion net-utils 
+
+    - name: start and enable docker
+      service:
+        name: docker
+        state: started
+        enabled: yes
+ 
+    - name: enable kubelet
+      service: 
+        name: kubelet
+        state: started
+        enabled: yes
+        name: kubelet
+        enabled: yes
+

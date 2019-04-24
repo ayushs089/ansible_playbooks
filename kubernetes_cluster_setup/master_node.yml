@@ -1,0 +1,19 @@
+---
+ - hosts: master
+   tasks:
+    - name: kubeadm command
+      shell:  kubeadm init --pod-network-cidr=172.24.0.0/16  > output.txt
+   
+    - name: make a directory
+      file: path=/root/.kube   state=directory
+
+    - name: copy admin.conf in above directory
+      copy: src=/etc/kubernetes/admin.conf dest=/root/.kube/config remote_src=yes
+
+    - name: for calico networking
+      shell: kubectl apply -f https://docs.projectcalico.org/v3.3/getting-started/kubernetes/installation/hosted/rbac-kdd.yaml
+
+    - name: networking
+      shell: kubectl apply -f https://docs.projectcalico.org/v3.3/getting-started/kubernetes/installation/hosted/kubernetes-datastore/calico-networking/1.7/calico.yaml
+    
+    - shell: tail /root/output.txt | grep kubeadm  > a.sh  
